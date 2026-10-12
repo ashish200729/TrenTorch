@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import trentorch
 
 # Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
@@ -147,6 +148,17 @@ class TestCommandExecution:
         assert result.returncode == 0
         assert real_version in result.stdout
         assert "unknown" not in result.stdout.lower()
+
+    def test_trentorch_package_version_matches_pyproject(self):
+        """The package version used by system commands must match project metadata."""
+        pyproject_content = (self.project_root / "pyproject.toml").read_text(encoding="utf-8")
+        real_version = next(
+            line.split("=")[1].strip().strip('\"').strip("'")
+            for line in pyproject_content.splitlines()
+            if line.strip().startswith("version")
+        )
+
+        assert trentorch.__version__ == real_version
 
     @pytest.mark.parametrize(
         "command", ["setup", "system", "module", "dev", "package", "milestone", "benchmark", "olympics"]
